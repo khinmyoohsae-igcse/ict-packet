@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packets & Packet Switching Quiz</title>
+  <style>
+    :root {
+      --primary: #0073e6;
+      --primary-hover: #005bb5;
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --text: #333333;
+      --correct: #2e7d32;
+      --incorrect: #c62828;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .quiz-container {
+      background: var(--card);
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 25px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .question-card {
+      display: none;
+    }
+
+    .question-card.active {
+      display: block;
+    }
+
+    .question-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      padding: 12px 18px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .option-btn:hover {
+      border-color: var(--primary);
+      background-color: #f0f7ff;
+    }
+
+    .option-btn.selected {
+      border-color: var(--primary);
+      background-color: #e6f0fa;
+    }
+
+    .option-btn.correct {
+      background-color: #e8f5e9;
+      border-color: var(--correct);
+      color: var(--correct);
+      font-weight: bold;
+    }
+
+    .option-btn.incorrect {
+      background-color: #ffebee;
+      border-color: var(--incorrect);
+      color: var(--incorrect);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+    }
+
+    button.nav-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.nav-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button.nav-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .result-container {
+      display: none;
+      text-align: center;
+    }
+
+    .score-text {
+      font-size: 1.5rem;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    .restart-btn {
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .restart-btn:hover {
+      background: var(--primary-hover);
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>Packets & Packet Switching Quiz</h1>
+  <p class="subtitle">Based on Section 3: Packets and packet switching</p>
+  
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <div id="quiz-body">
+    <!-- Questions will be rendered here dynamically -->
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="nav-btn" id="prev-btn" onclick="prevQuestion()" disabled>Previous</button>
+    <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Next</button>
+  </div>
+
+  <div class="result-container" id="result-container">
+    <h2>Quiz Completed!</h2>
+    <div class="score-text" id="score-text"></div>
+    <button class="restart-btn" onclick="restartQuiz()">Restart Quiz</button>
+  </div>
+</div>
+
+<script>
+const quizData = [
+  {
+    q: "What is a packet?",
+    options: [
+      "A complete whole file sent over a network",
+      "A small chunk of data used to transmit messages/files over a network",
+      "A type of physical hardware cable",
+      "A recipient's IP address"
+    ],
+    correct: 1
+  },
+  {
+    q: "When a file or email message is sent over a network, how is it split?",
+    options: [
+      "Into completely random sizes",
+      "Into two unequal parts",
+      "Into equal-sized packets",
+      "It is never split"
+    ],
+    correct: 2
+  },
+  {
+    q: "In the paper spider activity, into how many equal-sized packets was the drawing cut?",
+    options: ["2", "4", "6", "8"],
+    correct: 1
+  },
+  {
+    q: "What happens if a whole file/email goes missing or is damaged during transmission without using packets?",
+    options: [
+      "Nothing, it repairs itself automatically",
+      "Only half of the file needs to be resent",
+      "The whole thing would have to be resent",
+      "The recipient receives it anyway"
+    ],
+    correct: 2
+  },
+  {
+    q: "What is the main advantage when a single packet goes missing or is damaged?",
+    options: [
+      "Just one packet needs to be re-sent",
+      "The entire file must be re-created",
+      "The sender receives a physical letter",
+      "The transmission speed doubles"
+    ],
+    correct: 0
+  },
+  {
+    q: "Why does having packet numbers make handling missing data easier?",
+    options: [
+      "It makes the network faster",
+      "It makes it easy to identify which specific packet is missing",
+      "It prevents traffic jams completely",
+      "It encrypts the message content"
+    ],
+    correct: 1
+  },
+  {
+    q: "What component must be added to each packet before sending?",
+    options: [
+      "A physical stamp",
+      "A footer",
+      "A header",
+      "A password"
+    ],
+    correct: 2
+  },
+  {
+    q: "Which of the following items is included in a packet's header?",
+    options: [
+      "The recipient's phone number",
+      "The packet number, recipient's IP address, and sender's IP address",
+      "The total size of the hard drive",
+      "The user's email password"
+    ],
+    correct: 1
+  },
+  {
+    q: "By roughly how much does adding header data increase the total amount of data sent?",
+    options: ["1%", "3%", "10%", "50%"],
+    correct: 1
+  },
+  {
+    q: "Despite the extra data overhead, why is using packets preferred over sending whole files?",
+    options: [
+      "It requires no IP addresses",
+      "It uses less total power",
+      "It is much less work if damage or loss occurs compared to resending whole files",
+      "It prevents packets from arriving out of order"
+    ],
+    correct: 2
+  },
+  {
+    q: "How do individual packets travel across a network during packet switching?",
+    options: [
+      "All bundled together in a single row",
+      "Independently from one another",
+      "Only through a single dedicated wire",
+      "In reverse alphabetical order"
+    ],
+    correct: 1
+  },
+  {
+    q: "What can packets do if there is a traffic jam on a specific network route?",
+    options: [
+      "Wait at the jam until it clears",
+      "Take different routes to reach the destination",
+      "Delete themselves automatically",
+      "Return to the sender immediately"
+    ],
+    correct: 1
+  },
+  {
+    q: "Does it matter if packets arrive at the destination in the wrong order?",
+    options: [
+      "Yes, the data becomes permanently corrupted",
+      "Yes, the message must be resent",
+      "No, because each packet is numbered, they can be put into the correct order when all arrive",
+      "No, because order does not matter in messages"
+    ],
+    correct: 2
+  },
+  {
+    q: "What is the process called where packets travel independently over different routes and reassemble at the destination?",
+    options: [
+      "Packet switching",
+      "File forwarding",
+      "Circuit routing",
+      "Header packing"
+    ],
+    correct: 0
+  },
+  {
+    q: "In the modeling activity, where were the packet number and recipient name written?",
+    options: [
+      "Inside the folded paper",
+      "On a separate piece of cardboard",
+      "On the outside of all four packets",
+      "They were not written down"
+    ],
+    correct: 2
+  },
+  {
+    q: "Which of the following was a rule in the packet passing activity?",
+    options: [
+      "You can throw packets across the room",
+      "You can pass as many packets as you want at once",
+      "You must stay in your seat",
+      "You must pass packets away from the recipient"
+    ],
+    correct: 2
+  },
+  {
+    q: "How many packets could be passed at a single time under the activity rules?",
+    options: ["One packet at a time", "Two packets at a time", "All four packets at once", "Any number"],
+    correct: 0
+  },
+  {
+    q: "What should the recipient do once all four packets are received in the activity?",
+    options: [
+      "Throw them away",
+      "Open them, put them in order, and check that the message looks OK",
+      "Send them back to the original sender without opening",
+      "Erase the numbers on the outside"
+    ],
+    correct: 1
+  },
+  {
+    q: "What two IP addresses are required inside the packet header?",
+    options: [
+      "Sender IP and Router IP",
+      "Recipient IP and Sender IP",
+      "Website IP and Server IP",
+      "MAC address and IP address"
+    ],
+    correct: 1
+  },
+  {
+    q: "In packet switching diagrams, what do nodes/boxes between the sender and receiver represent?",
+    options: [
+      "Individual desktop computers",
+      "Intermediary network devices/routers routing packets along different paths",
+      "Storage hard drives",
+      "Email servers only"
+    ],
+    correct: 1
+  }
+];
+
+let currentQuestion = 0;
+let userAnswers = new Array(quizData.length).fill(null);
+
+function renderQuestion() {
+  const container = document.getElementById('quiz-body');
+  container.innerHTML = '';
+
+  const q = quizData[currentQuestion];
+
+  const qCard = document.createElement('div');
+  qCard.className = 'question-card active';
+
+  const qTitle = document.createElement('div');
+  qTitle.className = 'question-title';
+  qTitle.innerText = `Question ${currentQuestion + 1} of ${quizData.length}: ${q.q}`;
+  qCard.appendChild(qTitle);
+
+  const optionsDiv = document.createElement('div');
+  optionsDiv.className = 'options-container';
+
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerText = opt;
+
+    if (userAnswers[currentQuestion] !== null) {
+      btn.disabled = true;
+      if (idx === q.correct) {
+        btn.classList.add('correct');
+      }
+      if (userAnswers[currentQuestion] === idx && idx !== q.correct) {
+        btn.classList.add('incorrect');
+      }
+    }
+
+    btn.onclick = () => selectOption(idx);
+    optionsDiv.appendChild(btn);
+  });
+
+  qCard.appendChild(optionsDiv);
+  container.appendChild(qCard);
+
+  // Update progress bar
+  const progressPercent = ((currentQuestion + 1) / quizData.length) * 100;
+  document.getElementById('progress').style.width = `${progressPercent}%`;
+
+  // Update navigation buttons
+  document.getElementById('prev-btn').disabled = currentQuestion === 0;
+  
+  const nextBtn = document.getElementById('next-btn');
+  if (currentQuestion === quizData.length - 1) {
+    nextBtn.innerText = 'Finish';
+  } else {
+    nextBtn.innerText = 'Next';
+  }
+}
+
+function selectOption(idx) {
+  if (userAnswers[currentQuestion] !== null) return;
+  userAnswers[currentQuestion] = idx;
+  renderQuestion();
+}
+
+function nextQuestion() {
+  if (currentQuestion < quizData.length - 1) {
+    currentQuestion++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('quiz-body').style.display = 'none';
+  document.getElementById('controls').style.display = 'none';
+
+  let score = 0;
+  userAnswers.forEach((ans, idx) => {
+    if (ans === quizData[idx].correct) score++;
+  });
+
+  const resultContainer = document.getElementById('result-container');
+  const scoreText = document.getElementById('score-text');
+  
+  scoreText.innerText = `You scored ${score} out of ${quizData.length} (${Math.round((score / quizData.length) * 100)}%)`;
+  resultContainer.style.display = 'block';
+}
+
+function restartQuiz() {
+  currentQuestion = 0;
+  userAnswers = new Array(quizData.length).fill(null);
+  
+  document.getElementById('quiz-body').style.display = 'block';
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('result-container').style.display = 'none';
+
+  renderQuestion();
+}
+
+// Initial display
+renderQuestion();
+</script>
+
+</body>
+</html>
